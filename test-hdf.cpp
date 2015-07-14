@@ -209,6 +209,6 @@ int main() {
   test_attribute_open();
   test_attribute_write();
   test_dataset_write();
- // test_dataset_structure_write();
+  test_dataset_structure_write();
   return 0;
 };
