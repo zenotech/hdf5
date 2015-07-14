@@ -3,25 +3,25 @@
 
 
 void test_file_creation(){
-  hdf::HDFFile<> file(boost::filesystem::path("test.h5"), hdf::HDFFile<>::truncate);
+  hdf::HDFFile<> file(std::string("test.h5"), hdf::HDFFile<>::truncate);
 }
 
 void test_dataset_creation() {
-  hdf::HDFFile<> file(boost::filesystem::path("test.h5"), hdf::HDFFile<>::truncate);
+  hdf::HDFFile<> file(std::string("test.h5"), hdf::HDFFile<>::truncate);
   std::vector<hsize_t> dims;
   dims.resize(2);
   dims[0] = 20;
   dims[1] = 5;
   boost::shared_ptr<hdf::HDFDataSet<> > datasetint
-    = file.createDataset<int, 1>(boost::filesystem::path("/test"), dims);
+    = file.createDataset<int, 1>(std::string("/test"), dims);
   boost::shared_ptr<hdf::HDFDataSet<> > datasetfloat
-    = file.createDataset<float,1>(boost::filesystem::path("/test-float"), dims);
+    = file.createDataset<float,1>(std::string("/test-float"), dims);
   boost::shared_ptr<hdf::HDFDataSet<> > datasetdouble
-    = file.createDataset<double,1>(boost::filesystem::path("/test-double"), dims);
+    = file.createDataset<double,1>(std::string("/test-double"), dims);
 }
 
 void test_dataset_open() {
-  hdf::HDFFile<> file(boost::filesystem::path("test.h5"), hdf::HDFFile<>::truncate);
+  hdf::HDFFile<> file(std::string("test.h5"), hdf::HDFFile<>::truncate);
   {
     std::vector<hsize_t> dims;
     dims.resize(2);
@@ -29,28 +29,28 @@ void test_dataset_open() {
     dims[1] = 5;
 
     boost::shared_ptr<hdf::HDFDataSet<> > datasetint
-      = file.createDataset<int, 1>(boost::filesystem::path("/test"), dims);
+      = file.createDataset<int, 1>(std::string("/test"), dims);
   }
   boost::shared_ptr<hdf::HDFDataSet<> > dataset
-    = file.openDataset(boost::filesystem::path("/test"));
+    = file.openDataset(std::string("/test"));
 }
 
 void test_group_create() {
-  hdf::HDFFile<> file(boost::filesystem::path("test.h5"), hdf::HDFFile<>::truncate);
-  boost::shared_ptr<hdf::HDFGroup<> > group = file.createGroup(boost::filesystem::path("/test-group"));
+  hdf::HDFFile<> file(std::string("test.h5"), hdf::HDFFile<>::truncate);
+  boost::shared_ptr<hdf::HDFGroup<> > group = file.createGroup(std::string("/test-group"));
 }
 
 void test_group_open() {
-  hdf::HDFFile<> file(boost::filesystem::path("test.h5"), hdf::HDFFile<>::truncate);
+  hdf::HDFFile<> file(std::string("test.h5"), hdf::HDFFile<>::truncate);
   {
-    boost::shared_ptr<hdf::HDFGroup<> > group = file.createGroup(boost::filesystem::path("/test-group"));
+    boost::shared_ptr<hdf::HDFGroup<> > group = file.createGroup(std::string("/test-group"));
   }
-  boost::shared_ptr<hdf::HDFGroup<> > group = file.openGroup(boost::filesystem::path("/test-group"));
+  boost::shared_ptr<hdf::HDFGroup<> > group = file.openGroup(std::string("/test-group"));
 }
 
 void test_attribute_create() {
-  hdf::HDFFile<> file(boost::filesystem::path("test.h5"), hdf::HDFFile<>::truncate);
-  boost::shared_ptr<hdf::HDFGroup<> > group = file.createGroup(boost::filesystem::path("/test-group"));
+  hdf::HDFFile<> file(std::string("test.h5"), hdf::HDFFile<>::truncate);
+  boost::shared_ptr<hdf::HDFGroup<> > group = file.createGroup(std::string("/test-group"));
   std::vector<hsize_t> dims;
   dims.resize(2);
   dims[0] = 1;
@@ -60,8 +60,8 @@ void test_attribute_create() {
 }
 
 void test_attribute_open() {
-  hdf::HDFFile<> file(boost::filesystem::path("test.h5"), hdf::HDFFile<>::truncate);
-  boost::shared_ptr<hdf::HDFGroup<> > group = file.createGroup(boost::filesystem::path("/test-group"));
+  hdf::HDFFile<> file(std::string("test.h5"), hdf::HDFFile<>::truncate);
+  boost::shared_ptr<hdf::HDFGroup<> > group = file.createGroup(std::string("/test-group"));
   std::vector<hsize_t> dims;
   dims.resize(2);
   dims[0] = 1;
@@ -73,8 +73,8 @@ void test_attribute_open() {
 }
 
 void test_attribute_write() {
-  hdf::HDFFile<> file(boost::filesystem::path("test.h5"), hdf::HDFFile<>::truncate);
-  boost::shared_ptr<hdf::HDFGroup<> > group = file.createGroup(boost::filesystem::path("/test-group"));
+  hdf::HDFFile<> file(std::string("test.h5"), hdf::HDFFile<>::truncate);
+  boost::shared_ptr<hdf::HDFGroup<> > group = file.createGroup(std::string("/test-group"));
   std::vector<hsize_t> dims(1,1);
 
   group->createAttribute<int>("attr", dims);
@@ -87,7 +87,7 @@ void test_attribute_write() {
 
 void test_dataset_write() {
   {
-    hdf::HDFFile<> file(boost::filesystem::path("test.h5"), hdf::HDFFile<>::truncate);
+    hdf::HDFFile<> file(std::string("test.h5"), hdf::HDFFile<>::truncate);
 
     std::vector<hsize_t> dims;
     dims.resize(2);
@@ -95,12 +95,12 @@ void test_dataset_write() {
     dims[1] = 2;
 
     boost::shared_ptr<hdf::HDFDataSet<> > datasetint
-      = file.createDataset<int, 1>(boost::filesystem::path("/test"), dims);
+      = file.createDataset<int, 1>(std::string("/test"), dims);
   }
-  hdf::HDFFile<> file(boost::filesystem::path("test.h5"));
+  hdf::HDFFile<> file(std::string("test.h5"));
 
   boost::shared_ptr<hdf::HDFDataSet<> > dataset
-    = file.openDataset(boost::filesystem::path("/test"));
+    = file.openDataset(std::string("/test"));
 
   std::vector<int> testdata(6);
   testdata[0] = 1;
@@ -118,7 +118,7 @@ void test_dataset_write() {
     dims[1] = 3;
 
     boost::shared_ptr<hdf::HDFDataSet<> > datasetint
-      = file.createDataset<int, 1>(boost::filesystem::path("/test2"), dims);
+      = file.createDataset<int, 1>(std::string("/test2"), dims);
     datasetint->writeData(testdata);
 
     std::vector<int> readData2;
@@ -165,12 +165,12 @@ void
 test_dataset_structure_write()
 {
   {
-    hdf::HDFFile<> file(boost::filesystem::path("teststruct.h5"), hdf::HDFFile<>::truncate);
+    hdf::HDFFile<> file(std::string("teststruct.h5"), hdf::HDFFile<>::truncate);
     std::vector<std::pair<int, float> > pairs(2);
     pairs[0] = std::make_pair(1, 2.5f);
     pairs[1] = std::make_pair(1, 3.5f);
     std::cout << "Writing pairs" << std::endl;
-    file.writeDataset(boost::filesystem::path("/test1"), pairs);
+    file.writeDataset(std::string("/test1"), pairs);
 
     std::vector<test_point> points(4);
     points[0] = test_point(0,0,1);
@@ -179,18 +179,18 @@ test_dataset_structure_write()
     points[3] = test_point(0,1,0);
     std::cout << "Writing points" << std::endl;
     boost::shared_ptr<hdf::HDFDataSet<> > datasetpoints
-      = file.writeDataset(boost::filesystem::path("/test"), points);
+      = file.writeDataset(std::string("/test"), points);
   }
 
-  hdf::HDFFile<> file(boost::filesystem::path("teststruct.h5"));
-  boost::shared_ptr<hdf::HDFDataSet<> > datasetpoints = file.openDataset(boost::filesystem::path("/test"));
+  hdf::HDFFile<> file(std::string("teststruct.h5"));
+  boost::shared_ptr<hdf::HDFDataSet<> > datasetpoints = file.openDataset(std::string("/test"));
   std::vector<test_point> read;
   datasetpoints->readData(read);
   assert(read.size() == 12);
   assert(read[0] == test_point(0,0,1));
   assert(read[1] == test_point(1,0,0));
 
-  boost::shared_ptr<hdf::HDFDataSet<> > datasetpairs = file.openDataset(boost::filesystem::path("/test1"));
+  boost::shared_ptr<hdf::HDFDataSet<> > datasetpairs = file.openDataset(std::string("/test1"));
 
   std::vector<std::pair<int, float> > pairs;
   datasetpairs->readData(pairs);
