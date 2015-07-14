@@ -2,8 +2,8 @@
 #define hdffileH
 
 #include <boost/filesystem/path.hpp>
-#include <hdf5/hdfgroup.hpp>
-#include <hdf5/hdf5/traits.hpp>
+#include "hdfgroup.hpp"
+#include "hdf5/traits.hpp"
 
 namespace hdf {
   template<class HDFImpl=HDF5Traits>
@@ -20,7 +20,7 @@ namespace hdf {
      */
     HDFFile(const boost::filesystem::path & path, Flags flags = none) {
       file = HDFImpl::open(path, flags==truncate);
-      initFileGroup(*file);
+      this->initFileGroup(*file);
     };
 
     ~HDFFile() {

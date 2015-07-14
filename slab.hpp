@@ -1,7 +1,7 @@
 #ifndef hdfslabH
 #define hdfslabH
 
-#include <hdf5/hdf5/traits.hpp>
+#include "hdf5/traits.hpp"
 #include <boost/filesystem/path.hpp>
 
 namespace hdf {
