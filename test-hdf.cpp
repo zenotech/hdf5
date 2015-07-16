@@ -12,8 +12,9 @@ void test_dataset_creation() {
   dims.resize(2);
   dims[0] = 20;
   dims[1] = 5;
+  hdf::Slab<2> filespace(dims);
   boost::shared_ptr<hdf::HDFDataSet<> > datasetint
-    = file.createDataset<int, 1>(std::string("/test"), dims);
+    = file.createDataset<int,1>(std::string("/test"), dims);
   boost::shared_ptr<hdf::HDFDataSet<> > datasetfloat
     = file.createDataset<float,1>(std::string("/test-float"), dims);
   boost::shared_ptr<hdf::HDFDataSet<> > datasetdouble
@@ -27,7 +28,7 @@ void test_dataset_open() {
     dims.resize(2);
     dims[0] = 15;
     dims[1] = 5;
-
+    hdf::Slab<2> filespace(dims);
     boost::shared_ptr<hdf::HDFDataSet<> > datasetint
       = file.createDataset<int, 1>(std::string("/test"), dims);
   }
@@ -93,9 +94,9 @@ void test_dataset_write() {
     dims.resize(2);
     dims[0] = 3;
     dims[1] = 2;
-
+    hdf::Slab<2> filespace(dims);
     boost::shared_ptr<hdf::HDFDataSet<> > datasetint
-      = file.createDataset<int, 1>(std::string("/test"), dims);
+      = file.createDataset<int,1>(std::string("/test"), dims);
   }
   hdf::HDFFile<> file(std::string("test.h5"));
 
@@ -116,7 +117,7 @@ void test_dataset_write() {
     dims.resize(2);
     dims[0] = 2;
     dims[1] = 3;
-
+    hdf::Slab<2> filespace(dims);
     boost::shared_ptr<hdf::HDFDataSet<> > datasetint
       = file.createDataset<int, 1>(std::string("/test2"), dims);
     datasetint->writeData(testdata);
