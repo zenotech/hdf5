@@ -1,10 +1,10 @@
 #ifndef hdfgroupH
 #define hdfgroupH
 
-#include <hdf5/hdf5/traits.hpp>
-#include <hdf5/hdfdataset.hpp>
-#include <hdf5/hdfattribute.hpp>
-#include <hdf5/slab.hpp>
+#include "hdf5/traits.hpp"
+#include "hdfdataset.hpp"
+#include "hdfattribute.hpp"
+#include "slab.hpp"
 #include <boost/shared_ptr.hpp>
 #include <string>
 

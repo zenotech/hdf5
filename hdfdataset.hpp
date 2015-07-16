@@ -1,8 +1,8 @@
 #ifndef hdfdatasetH
 #define hdfdatasetH
 
-#include <hdf5/slab.hpp>
-#include <hdf5/hdf5/traits.hpp>
+#include "slab.hpp"
+#include "hdf5/traits.hpp"
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <stdexcept>
