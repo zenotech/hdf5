@@ -48,6 +48,8 @@ namespace hdf
   class AttributeNotFound : public std::exception
   {
   };
+  class ChunkSizeDimMismatch : public std::exception
+  {};
 
   inline
   void
@@ -999,7 +1001,8 @@ namespace hdf
 
       template<class Parent>
         HDF5DataSet(Parent & p, const std::string name,
-            const HDF5DataType &datatype, const HDF5DataSpace &dataspace)
+            const HDF5DataType &datatype, const HDF5DataSpace &dataspace,
+            const std::vector<hsize_t> chunk_dims=std::vector<hsize_t>())
         {
           hid_t cparms;
           if (H5Lexists(p.hid(), name.c_str(), H5P_DEFAULT) == true)
@@ -1008,9 +1011,19 @@ namespace hdf
           }
 
           cparms = H5Pcreate(H5P_DATASET_CREATE);
-//       //@todo: chunk the datset
-//       hsize_t chunk_dims[2] = {2,2};
-//       H5Pset_chunk(cparms, 2, chunk_dims);
+         // Chunk the datset
+         if(chunk_dims.size()){
+           if(dataspace.getNumDimensions() == chunk_dims.size()){
+           //       hsize_t chunk_dims[2] = {2,2};
+           //       H5Pset_chunk(cparms, 2, chunk_dims);
+             H5Pset_chunk(cparms, chunk_dims.size(), &chunk_dims[0]);
+           }
+           else{
+             H5Pclose(cparms);
+             throw ChunkSizeDimMismatch();
+           }
+         }
+
 #if H5_VERS_MINOR >= 8
           dataset = H5Dcreate(p.hid(), name.c_str(), datatype.hid(),
               dataspace.hid(), H5P_DEFAULT, cparms, H5P_DEFAULT);
@@ -1335,7 +1348,8 @@ namespace hdf
     template<typename Type>
       static boost::shared_ptr<dataset_type>
       createDataSet(group_type & f, const std::string & path,
-          const detail::HDF5DataSpace &space)
+          const detail::HDF5DataSpace &space,
+          const std::vector<hsize_t> chunk_dims=std::vector<hsize_t>())
       {
         detail::wrapper<Type> t;
         detail::HDF5DataType datatype(t);
@@ -1348,12 +1362,12 @@ namespace hdf
           dims[1] = datatype.getDim();
           detail::HDF5DataSpace filespace(dims);
           return boost::shared_ptr<dataset_type>(
-              new dataset_type(f, path, datatype, filespace));
+              new dataset_type(f, path, datatype, filespace, chunk_dims));
         }
         else
         {
           return boost::shared_ptr<dataset_type>(
-              new dataset_type(f, path, datatype, space));
+              new dataset_type(f, path, datatype, space, chunk_dims));
         }
       }
 

@@ -119,16 +119,17 @@ namespace hdf {
      */
     template<typename Type, int order>
     boost::shared_ptr<HDFDataSet<HDFImpl> >
-    createDataset(const std::string & path, const Slab<order, HDFImpl> &dims) {
+    createDataset(const std::string & path, const Slab<order, HDFImpl> &dims,
+                  const std::vector<hsize_t> chunk_dims=std::vector<hsize_t>()) {
       try {
 	return boost::shared_ptr<HDFDataSet<HDFImpl> >
 	  (new HDFDataSet<HDFImpl>
-	   (HDFImpl::template createDataSet<Type>(*group, path, dims)));
+	   (HDFImpl::template createDataSet<Type>(*group, path, dims, chunk_dims)));
       } catch (DatasetExists &) {
 	HDFImpl::deleteDataset(*group, path);
 	return boost::shared_ptr<HDFDataSet<HDFImpl> >
 	  (new HDFDataSet<HDFImpl>
-	   (HDFImpl::template createDataSet<Type>(*group, path, dims)));
+	   (HDFImpl::template createDataSet<Type>(*group, path, dims, chunk_dims)));
       }
     }
 
