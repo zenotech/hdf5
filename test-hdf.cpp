@@ -139,6 +139,36 @@ void test_dataset_write() {
   assert(readData[3] == 4);
 }
 
+void test_large_dataset_write() {
+    hdf::HDFFile<> file("test.h5", hdf::HDFFile<>::truncate);
+
+    std::size_t nElements = 1ul << 31;
+    std::vector<hsize_t> dims;
+    dims.resize(2);
+    dims[1] = 3;
+    dims[0] = nElements;
+    hdf::Slab<2> filespace(dims);
+    boost::shared_ptr<hdf::HDFDataSet<> > dataset
+        = file.createDataset<int>("/test", filespace);
+
+    {
+        std::vector<int> testdata(nElements*3);
+        for (std::size_t i =0; i < nElements*3; ++i) {
+            testdata[i] = 1;
+        }
+        dataset->writeData(testdata);
+    }
+
+    std::vector<int> readData;
+    dataset->readData(readData);
+    assert(readData.size() == nElements*3);
+    assert(readData[0] == 1);
+    assert(readData[1] == 1);
+    assert(readData[2] == 1);
+    assert(readData[3] == 1);
+}
+
+
 #include <boost/fusion/adapted/struct/adapt_struct.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 
@@ -209,6 +239,7 @@ int main() {
   test_attribute_open();
   test_attribute_write();
   test_dataset_write();
+  //test_large_dataset_write();
   test_dataset_structure_write();
   return 0;
 };
