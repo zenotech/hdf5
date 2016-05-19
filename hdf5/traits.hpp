@@ -30,40 +30,52 @@
 #include <mpi.h>
 #endif
 
-namespace hdf {
+namespace hdf
+{
 
-class DatasetExists : public std::exception {
-};
-class AttributeExists : public std::exception {
-};
-class GroupNotFound : public std::exception {
-};
-class DatasetNotFound : public std::exception {
-};
-class AttributeNotFound : public std::exception {
-};
+  class DatasetExists : public std::exception
+  {
+  };
+  class AttributeExists : public std::exception
+  {
+  };
+  class GroupNotFound : public std::exception
+  {
+  };
+  class DatasetNotFound : public std::exception
+  {
+  };
+  class AttributeNotFound : public std::exception
+  {
+  };
+  class ChunkSizeDimMismatch : public std::exception
+  {};
 
-inline
-void
-output_dims(hid_t dataspace) {
-    if (H5Sis_simple(dataspace)) {
-        std::cout << "Num dims: " << H5Sget_simple_extent_ndims(dataspace)
-                  << "\n";
-        std::vector<hsize_t> dims(H5Sget_simple_extent_ndims(dataspace));
-        H5Sget_simple_extent_dims(dataspace, &dims[0], 0);
-        for (std::size_t i = 0; i < dims.size(); ++i)
-            std::cout << "[" << i << "] " << dims[i] << "\n";
+  inline
+  void
+  output_dims(hid_t dataspace)
+  {
+    if (H5Sis_simple(dataspace))
+    {
+      std::cout << "Num dims: " << H5Sget_simple_extent_ndims(dataspace)
+          << "\n";
+      std::vector<hsize_t> dims(H5Sget_simple_extent_ndims(dataspace));
+      H5Sget_simple_extent_dims(dataspace, &dims[0], 0);
+      for (std::size_t i = 0; i < dims.size(); ++i)
+        std::cout << "[" << i << "] " << dims[i] << "\n";
 
-        std::cout << "Selected " << H5Sget_select_elem_npoints(dataspace)
-                  << " points\n";
+      std::cout << "Selected " << H5Sget_select_elem_npoints(dataspace)
+          << " points\n";
     }
-}
+  }
 
-namespace detail {
+  namespace detail
+  {
 
-inline
-void
-check_errors() {
+    inline
+    void
+    check_errors()
+    {
 #if H5_VERS_MINOR >= 8
     H5Eprint(H5E_DEFAULT, NULL);
 #else
@@ -860,19 +872,32 @@ class HDF5DataSet : boost::noncopyable {
 
     template<class Parent>
     HDF5DataSet(Parent & p, const std::string name,
-                const HDF5DataType &datatype, const HDF5DataSpace &dataspace) {
+        const HDF5DataType &datatype, const HDF5DataSpace &dataspace,
+        const std::vector<hsize_t> chunk_dims=std::vector<hsize_t>())
+    {
         hid_t cparms;
-        if (H5Lexists(p.hid(), name.c_str(), H5P_DEFAULT) == true) {
+        if (H5Lexists(p.hid(), name.c_str(), H5P_DEFAULT) == true)
+        {
             throw DatasetExists();
         }
 
         cparms = H5Pcreate(H5P_DATASET_CREATE);
-        //       //@todo: chunk the datset
-        //       hsize_t chunk_dims[2] = {2,2};
-        //       H5Pset_chunk(cparms, 2, chunk_dims);
+        // Chunk the datset
+        if(chunk_dims.size()){
+            if(dataspace.getNumDimensions() == chunk_dims.size()){
+                //       hsize_t chunk_dims[2] = {2,2};
+                //       H5Pset_chunk(cparms, 2, chunk_dims);
+                H5Pset_chunk(cparms, chunk_dims.size(), &chunk_dims[0]);
+            }
+            else{
+                H5Pclose(cparms);
+                throw ChunkSizeDimMismatch();
+            }
+        }
+
 #if H5_VERS_MINOR >= 8
         dataset = H5Dcreate(p.hid(), name.c_str(), datatype.hid(),
-                            dataspace.hid(), H5P_DEFAULT, cparms, H5P_DEFAULT);
+            dataspace.hid(), H5P_DEFAULT, cparms, H5P_DEFAULT);
 #else
         dataset = H5Dcreate(p.hid(), name.c_str(), datatype.hid(), dataspace.hid(), cparms);
 #endif
@@ -1152,21 +1177,26 @@ class HDF5Traits {
     template<typename Type>
     static std::unique_ptr<dataset_type>
     createDataSet(group_type & f, const std::string & path,
-                  const detail::HDF5DataSpace &space) {
+        const detail::HDF5DataSpace &space,
+        const std::vector<hsize_t> chunk_dims=std::vector<hsize_t>())
+    {
         detail::wrapper<Type> t;
         detail::HDF5DataType datatype(t);
         // Note DataSpace assumes that datatype is of dim 1
         // This is incorrect for homogeneous complex types
         // We should create new dataspace to account for dimension
-        if(datatype.getDim() > 1) {
-            std::vector<hsize_t> dims(2,space.getDimensions()[0]);
-            dims[1] = datatype.getDim();
-            detail::HDF5DataSpace filespace(dims);
-            return std::unique_ptr<dataset_type>(
-                       new dataset_type(f, path, datatype, filespace));
-        } else {
-            return std::unique_ptr<dataset_type>(
-                       new dataset_type(f, path, datatype, space));
+        if(datatype.getDim() > 1)
+        {
+          std::vector<hsize_t> dims(2,space.getDimensions()[0]);
+          dims[1] = datatype.getDim();
+          detail::HDF5DataSpace filespace(dims);
+          return std::unique_ptr<dataset_type>(
+              new dataset_type(f, path, datatype, filespace, chunk_dims));
+        }
+        else
+        {
+          return std::unique_ptr<dataset_type>(
+              new dataset_type(f, path, datatype, space, chunk_dims));
         }
     }
 

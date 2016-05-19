@@ -1,10 +1,10 @@
 #ifndef hdfgroupH
 #define hdfgroupH
 
-#include <hdf5/hdf5/traits.hpp>
-#include <hdf5/hdfdataset.hpp>
-#include <hdf5/hdfattribute.hpp>
-#include <hdf5/slab.hpp>
+#include <hdf5/traits.hpp>
+#include <hdfdataset.hpp>
+#include <hdfattribute.hpp>
+#include <slab.hpp>
 #include <string>
 
 namespace hdf {
@@ -117,16 +117,17 @@ class HDFGroup {
      */
     template<typename Type, int order>
     std::unique_ptr<HDFDataSet<HDFImpl> >
-    createDataset(const std::string & path, const Slab<order, HDFImpl> &dims) {
+    createDataset(const std::string & path, const Slab<order, HDFImpl> &dims,
+                  const std::vector<hsize_t> chunk_dims=std::vector<hsize_t>()) {
         try {
             return std::unique_ptr<HDFDataSet<HDFImpl> >
-                   (new HDFDataSet<HDFImpl>
-                    (HDFImpl::template createDataSet<Type>(*group, path, dims)));
+                (new HDFDataSet<HDFImpl>
+                    (HDFImpl::template createDataSet<Type>(*group, path, dims, chunk_dims)));
         } catch (DatasetExists &) {
             HDFImpl::deleteDataset(*group, path);
             return std::unique_ptr<HDFDataSet<HDFImpl> >
-                   (new HDFDataSet<HDFImpl>
-                    (HDFImpl::template createDataSet<Type>(*group, path, dims)));
+                (new HDFDataSet<HDFImpl>
+                    (HDFImpl::template createDataSet<Type>(*group, path, dims, chunk_dims)));
         }
     }
 

@@ -1,7 +1,7 @@
 #ifndef hdfattributeH
 #define hdfattributeH
 
-#include <hdf5/hdf5/traits.hpp>
+#include <hdf5/traits.hpp>
 #include <boost/shared_ptr.hpp>
 
 namespace hdf {

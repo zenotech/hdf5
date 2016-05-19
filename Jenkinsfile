@@ -3,6 +3,7 @@ node('c++') {
   checkout scm
   dir('build') {
     sh '''cmake ...
-          make'''
+          make
+          make test'''
   }
 }
