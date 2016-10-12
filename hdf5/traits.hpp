@@ -18,6 +18,7 @@
 #include <boost/cstdint.hpp>
 
 #include <string>
+#include <memory>
 #include <exception>
 #include <vector>
 #include <typeinfo>
@@ -719,7 +720,7 @@ class HDF5DataSpace {
         auto j = newSpace->elements.begin();
         for (const auto & i : mapping) {
             for (hsize_t l = 0; l < dim2size; ++l) {
-                *j = *i;
+                *j = i;
                 ++j;
 
                 for (hsize_t k = 1; k < dataspaceDims; ++k, ++j)
