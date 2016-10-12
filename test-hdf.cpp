@@ -147,7 +147,7 @@ void test_large_dataset_write() {
     dims[1] = 3;
     dims[0] = nElements;
     hdf::Slab<2> filespace(dims);
-    boost::shared_ptr<hdf::HDFDataSet<> > dataset
+    auto dataset
         = file.createDataset<int>("/test", filespace);
 
     {
