@@ -1,8 +1,8 @@
 #ifndef hdffileH
 #define hdffileH
 
-#include <hdfgroup.hpp>
-#include <hdf5/traits.hpp>
+#include "hdfgroup.hpp"
+#include "hdf5/traits.hpp"
 #include <string>
 
 namespace hdf {

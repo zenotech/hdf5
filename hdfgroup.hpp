@@ -1,11 +1,12 @@
 #ifndef hdfgroupH
 #define hdfgroupH
 
-#include <hdf5/traits.hpp>
-#include <hdfdataset.hpp>
-#include <hdfattribute.hpp>
-#include <slab.hpp>
+#include "hdf5/traits.hpp"
+#include "hdfdataset.hpp"
+#include "hdfattribute.hpp"
+#include "slab.hpp"
 #include <string>
+#include <memory>
 
 namespace hdf {
 template<typename>
