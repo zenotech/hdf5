@@ -22,7 +22,7 @@ class HDFFile : public HDFGroup<HDFImpl> {
      * Truncates the file if flags == truncate
      */
     HDFFile(const std::string & path, Flags flags = none) {
-      file = HDFImpl::open(path, flags|truncate, flags|readonly);
+      file = HDFImpl::open(path, flags&truncate, flags&readonly);
       HDFGroup_t::initFileGroup(*file);
     };
 
@@ -51,7 +51,7 @@ class HDFParallelFile : public HDFGroup<HDFImpl> {
      * Truncates the file if flags == truncate
      */
     HDFParallelFile(const std::string & path, Flags flags = none) {
-      file = HDFImpl::parallel_open(path, flags|truncate, flags|readonly);
+      file = HDFImpl::parallel_open(path, flags&truncate, flags&readonly);
       HDFGroup_t::initFileGroup(*file);
     };
 
