@@ -7,18 +7,18 @@
 
 namespace hdf {
 template<class HDFImpl=HDF5Traits>
-class HDFDataSet : std::enable_shared_from_this<HDFDataSet<HDFImpl> > {
+class HDFDataSet {
   public:
     HDFDataSet(std::shared_ptr<typename HDFImpl::dataset_type> dataset)
         : dataset(dataset) {
     }
 
     template<typename Type>
-    std::shared_ptr<HDFDataSet<HDFImpl> >
+    HDFDataSet<HDFImpl> *
     selectSubset(const std::vector<Type> & mapping) {
         if(mapping.empty()) throw std::runtime_error("No mapping available");
         dataset = dataset->selectSubset(mapping);
-        return this->shared_from_this();
+        return this;
     }
 
     template<typename Type>
