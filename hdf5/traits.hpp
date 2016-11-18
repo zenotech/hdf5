@@ -73,14 +73,25 @@ namespace hdf
   namespace detail
   {
 
-    inline
-    void
-    check_errors()
-    {
+inline bool
+h5lexists(hid_t loc_id, const std::string & name) {
+	std::size_t pos = name.find('/');
+	while (pos != std::string::npos) {
+		auto res = H5Lexists(loc_id, name.substr(pos).c_str(), H5P_DEFAULT); 
+                if (res <= 0) return false;
+		pos = name.find('/', pos+1);
+	}
+	return (H5Lexists(loc_id, name.c_str(), H5P_DEFAULT) > 0) ? true : false;
+}
+
+
+inline void
+check_errors()
+{
 #if H5_VERS_MINOR >= 8
-    H5Eprint(H5E_DEFAULT, NULL);
+	H5Eprint(H5E_DEFAULT, NULL);
 #else
-    H5Eprint(NULL);
+	H5Eprint(NULL);
 #endif
 }
 
@@ -890,7 +901,7 @@ class HDF5DataSet : boost::noncopyable {
   public:
     template<class Parent>
     HDF5DataSet(Parent & p, const std::string &name) {
-        if (H5Lexists(p.hid(), name.c_str(), H5P_DEFAULT) != true) {
+        if (h5lexists(p.hid(), name.c_str()) != true) {
             throw DatasetNotFound();
         }
 
@@ -910,7 +921,7 @@ class HDF5DataSet : boost::noncopyable {
         const std::vector<hsize_t> chunk_dims=std::vector<hsize_t>())
     {
         hid_t cparms;
-        if (H5Lexists(p.hid(), name.c_str(), H5P_DEFAULT) == true)
+        if (h5lexists(p.hid(), name.c_str()) == true)
         {
             throw DatasetExists();
         }
@@ -992,7 +1003,7 @@ class HDF5Group : boost::noncopyable {
     template<class Parent>
     HDF5Group(Parent & p, const std::string & path, bool create)
     throw (GroupNotFound) {
-        if (H5Lexists(p.hid(), path.c_str(), H5P_DEFAULT) || path == "/") {
+        if (h5lexists(p.hid(), path.c_str()) || path == "/") {
 
 #if H5_VERS_MINOR >= 8
             group = H5Gopen(p.hid(), path.c_str(), H5P_DEFAULT);
