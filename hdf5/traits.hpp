@@ -88,10 +88,14 @@ h5lexists(hid_t loc_id, const std::string & name) {
 	std::size_t pos = name.find('/');
 	while (pos != std::string::npos) {
 		auto res = H5Lexists(loc_id, name.substr(pos).c_str(), H5P_DEFAULT); 
-                if (res <= 0) return false;
+                if (res < 0) throw;
+                if (res == 0) return false; 
 		pos = name.find('/', pos+1);
 	}
-	return (H5Lexists(loc_id, name.c_str(), H5P_DEFAULT) > 0) ? true : false;
+       
+	auto res = H5Lexists(loc_id, name.c_str(), H5P_DEFAULT);
+        if (res < 0) throw;
+        return (res > 0) ? true : false;
 }
 
 
