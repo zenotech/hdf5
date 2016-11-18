@@ -584,7 +584,6 @@ class HDF5ParallelFileHolder : boost::noncopyable {
 
         //https://wickie.hlrs.de/platforms/index.php/MPI-IO
 
-        //H5Pset_fapl_mpiposix(plist_id, MPI_COMM_WORLD, false);
         H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
 
         if (H5Fis_hdf5(path.c_str()) > 0) {
@@ -601,7 +600,6 @@ class HDF5ParallelFileHolder : boost::noncopyable {
 
         //https://wickie.hlrs.de/platforms/index.php/MPI-IO
 
-        //H5Pset_fapl_mpiposix(plist_id, MPI_COMM_WORLD, false);
         H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
 
         if (H5Fis_hdf5(path.c_str()) > 0)
@@ -610,7 +608,8 @@ class HDF5ParallelFileHolder : boost::noncopyable {
         }
         else
         {
-          //file = H5Fcreate(path.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
+          H5Pclose(plist_id);
+          throw;
         }
         H5Pclose(plist_id);
         check_errors();
@@ -622,7 +621,6 @@ class HDF5ParallelFileHolder : boost::noncopyable {
 
         //https://wickie.hlrs.de/platforms/index.php/MPI-IO
 
-        //H5Pset_fapl_mpiposix(plist_id, MPI_COMM_WORLD, false);
         H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
 
         file = H5Fcreate(path.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
