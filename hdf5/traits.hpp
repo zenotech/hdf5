@@ -33,22 +33,32 @@
 
 namespace hdf
 {
-
+  class FileOpenFailed : public std::exception
+  {};
   class DatasetExists : public std::exception
-  {
-  };
+  {};
+  class DatasetOpenFailed : public std::exception
+  {};
+  class DatasetWriteFailed : public std::exception
+  {};
   class AttributeExists : public std::exception
-  {
-  };
+  {};
+  class AttributeCreateFailed : public std::exception
+  {};
+  class AttributeWriteFailed : public std::exception
+  {};
+  class AttributeOpenFailed : public std::exception
+  {};
+  class GroupCreateFailed : public std::exception
+  {};
+  class GroupOpenFailed : public std::exception
+  {};
   class GroupNotFound : public std::exception
-  {
-  };
+  {};
   class DatasetNotFound : public std::exception
-  {
-  };
+  {};
   class AttributeNotFound : public std::exception
-  {
-  };
+  {};
   class ChunkSizeDimMismatch : public std::exception
   {};
 
@@ -545,6 +555,8 @@ class HDF5FileHolder : boost::noncopyable {
             file = H5Fcreate(path.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
         }
         H5Pclose(plist_id);
+        if (file < 0)
+           throw FileOpenFailed(); 
         check_errors();
     }
     HDF5FileHolder(const std::string & path, ReadOnly){
@@ -557,9 +569,13 @@ class HDF5FileHolder : boost::noncopyable {
         }
         else
         {
-          //file = H5Fcreate(path.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
+          H5Pclose(plist_id);
+          throw FileOpenFailed();
         }
         H5Pclose(plist_id);
+        if (file < 0) {
+          throw FileOpenFailed();
+        }
         check_errors();
     }
     HDF5FileHolder(const std::string & path, Create) {
@@ -569,7 +585,10 @@ class HDF5FileHolder : boost::noncopyable {
         file = H5Fcreate(path.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
 
         H5Pclose(plist_id);
-
+        if (file < 0) {
+          throw FileOpenFailed();
+        }
+ 
         check_errors();
     }
 
@@ -595,7 +614,9 @@ class HDF5ParallelFileHolder : boost::noncopyable {
 
         //https://wickie.hlrs.de/platforms/index.php/MPI-IO
 
-        H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
+        if(H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL) < 0) {
+            throw FileOpenFailed();
+        }
 
         if (H5Fis_hdf5(path.c_str()) > 0) {
             file = H5Fopen(path.c_str(), H5F_ACC_RDWR, plist_id);
@@ -603,7 +624,9 @@ class HDF5ParallelFileHolder : boost::noncopyable {
             file = H5Fcreate(path.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
         }
         H5Pclose(plist_id);
-        check_errors();
+        if (file < 0) {
+          throw FileOpenFailed();
+        }
       }
       HDF5ParallelFileHolder(const std::string & path, ReadOnly) {
         hid_t plist_id;
@@ -611,7 +634,9 @@ class HDF5ParallelFileHolder : boost::noncopyable {
 
         //https://wickie.hlrs.de/platforms/index.php/MPI-IO
 
-        H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
+        if(H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL) < 0) {
+            throw FileOpenFailed();
+        }
 
         if (H5Fis_hdf5(path.c_str()) > 0)
         {
@@ -620,10 +645,12 @@ class HDF5ParallelFileHolder : boost::noncopyable {
         else
         {
           H5Pclose(plist_id);
-          throw;
+          throw FileOpenFailed();
         }
         H5Pclose(plist_id);
-        check_errors();
+        if (file < 0) {
+          throw FileOpenFailed();
+        }
       }
 
     HDF5ParallelFileHolder(const std::string & path, Create) {
@@ -632,13 +659,16 @@ class HDF5ParallelFileHolder : boost::noncopyable {
 
         //https://wickie.hlrs.de/platforms/index.php/MPI-IO
 
-        H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
+        if(H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL) < 0) {
+            throw FileOpenFailed();
+        }
 
         file = H5Fcreate(path.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
 
         H5Pclose(plist_id);
-
-        check_errors();
+        if (file < 0) {
+          throw FileOpenFailed();
+        }
     }
 
     ~HDF5ParallelFileHolder() {
@@ -659,6 +689,7 @@ class HDF5DataSpace {
   public:
     HDF5DataSpace(hid_t space) :
         dataspace(space) {
+        if (space < 0) throw;
         assert(H5Iget_type(space) == H5I_DATASPACE);
     }
 
@@ -910,9 +941,10 @@ class HDF5DataSet : boost::noncopyable {
 #else
         dataset = H5Dopen(p.hid(), name.c_str());
 #endif
+        if (dataset < 0) {
+            throw DatasetOpenFailed();
+        }
         space.reset(new HDF5DataSpace(H5Dget_space(dataset)));
-
-        check_errors();
     }
 
     template<class Parent>
@@ -948,9 +980,10 @@ class HDF5DataSet : boost::noncopyable {
 #endif
         H5Pclose(cparms);
 
+        if (dataset < 0) {
+            throw DatasetOpenFailed();
+        }
         space.reset(new HDF5DataSpace(H5Dget_space(dataset)));
-
-        check_errors();
     }
 
     ~HDF5DataSet() {
@@ -978,6 +1011,7 @@ class HDF5DataSet : boost::noncopyable {
   private:
     HDF5DataSet(hid_t d) :
         dataset(d) {
+        if (dataset < 0) throw;
         assert(H5Iget_type(dataset)==H5I_DATASET);
         H5Iinc_ref(dataset);
     }
@@ -996,7 +1030,7 @@ class HDF5Group : boost::noncopyable {
         group = H5Gcreate(p.hid(), path.c_str(), 0);
 #endif
         if (group < 0)
-            throw;
+            throw GroupCreateFailed();
         check_errors();
     }
 
@@ -1010,6 +1044,9 @@ class HDF5Group : boost::noncopyable {
 #else
             group = H5Gopen(p.hid(), path.c_str());
 #endif
+            if (group < 0) {
+                throw GroupOpenFailed();
+            }
         } else if (create) {
             //Group didn't exist and we've asked to create the group
 #if H5_VERS_MINOR >= 8
@@ -1019,7 +1056,7 @@ class HDF5Group : boost::noncopyable {
             group = H5Gcreate(p.hid(), path.c_str(), 0);
 #endif
             if (group < 0)
-                throw; //Error creating group
+                throw GroupCreateFailed(); //Error creating group
         } else {
             throw GroupNotFound();
         }
@@ -1067,7 +1104,9 @@ class HDF5Attribute : boost::noncopyable {
         }
 
         attribute = H5Aopen_name(p.hid(), name.c_str());
-        check_errors();
+        if (attribute < 0) {
+            throw AttributeOpenFailed();
+        }
     }
 
     template<class Type, class Object>
@@ -1087,12 +1126,13 @@ class HDF5Attribute : boost::noncopyable {
 #else
         attribute = H5Acreate(p.hid(), name.c_str(), type.hid(), space.hid(), H5P_DEFAULT);
 #endif
-        check_errors();
+        if (attribute < 0) {
+            throw AttributeCreateFailed();
+        }
     }
 
     ~HDF5Attribute() {
         H5Aclose(attribute);
-        check_errors();
     }
 
     hid_t
@@ -1266,7 +1306,10 @@ class HDF5Traits {
     write_attribute(const attribute_type & attribute, const Type & data) {
         detail::wrapper<Type> t;
         detail::HDF5DataType datatype(t);
-        H5Awrite(attribute.hid(), datatype.hid(), &data);
+        auto err = H5Awrite(attribute.hid(), datatype.hid(), &data);
+        if (err < 0) {
+           throw AttributeWriteFailed();
+        }
     }
 
     template<typename Type>
@@ -1275,7 +1318,10 @@ class HDF5Traits {
                     const std::vector<Type> & data) {
         detail::wrapper<Type> t;
         detail::HDF5DataType memdatatype(t);
-        H5Awrite(attribute.hid(), memdatatype.hid(), &data);
+        auto err = H5Awrite(attribute.hid(), memdatatype.hid(), &data);
+        if (err < 0) {
+            throw AttributeWriteFailed();
+        }
     }
 
     /*    struct T{
@@ -1307,7 +1353,9 @@ class HDF5Traits {
         {
             herr_t status = H5Dwrite(dataset.hid(), memdatatype.hid(), memorySpace.hid(), H5S_ALL,
                                      H5P_DEFAULT, &data[0]);
-            assert(status == 0);
+            if (status < 0) {
+                throw DatasetWriteFailed();
+            }
         }
     }
 #ifdef H5_HAVE_PARALLEL
@@ -1322,7 +1370,10 @@ class HDF5Traits {
         detail::HDF5DataSpace memorySpace(d);
         detail::wrapper<Type> t;
         detail::HDF5DataType memdatatype(t);
-        H5Dwrite(dataset.hid(), memdatatype.hid(), memorySpace.hid(), H5S_ALL, plist_id, &data[0]);
+        auto err = H5Dwrite(dataset.hid(), memdatatype.hid(), memorySpace.hid(), H5S_ALL, plist_id, &data[0]);
+        if (err < 0) {
+            throw DatasetWriteFailed();
+        }
     }
 #endif
     template<typename Type>
@@ -1333,9 +1384,12 @@ class HDF5Traits {
         detail::HDF5DataType memdatatype(t);
         auto fileSpace = dataset.getDataSpace();
 
-        H5Dwrite(dataset.hid(), memdatatype.hid(), memorySpace.hid(), fileSpace->hid(),
+        auto err = H5Dwrite(dataset.hid(), memdatatype.hid(), memorySpace.hid(), fileSpace->hid(),
                  H5P_DEFAULT, data);
         //H5Sclose(fileSpace);
+        if (err < 0) {
+            throw DatasetWriteFailed();
+        }
     }
 #ifdef H5_HAVE_PARALLEL
     template<typename Type>
@@ -1350,10 +1404,13 @@ class HDF5Traits {
         detail::HDF5DataType memdatatype(t);
         auto fileSpace = dataset.getDataSpace();
 
-        H5Dwrite(dataset.hid(), memdatatype.hid(), memorySpace.hid(), fileSpace->hid(),
+        auto err = H5Dwrite(dataset.hid(), memdatatype.hid(), memorySpace.hid(), fileSpace->hid(),
                  plist_id, data);
         //H5Sclose(fileSpace);
-    }
+        if (err < 0) {
+            throw DatasetWriteFailed();
+        }
+     }
 #endif
     template<typename Type>
     static void
@@ -1363,10 +1420,13 @@ class HDF5Traits {
         detail::wrapper<Type> t;
         detail::HDF5DataType memdatatype(t);
         //hid_t fileSpace = H5Dget_space(dataset.hid());
-        H5Dwrite(dataset.hid(), memdatatype.hid(), memorySpace.hid(), fileSpace.hid(),
+        auto err = H5Dwrite(dataset.hid(), memdatatype.hid(), memorySpace.hid(), fileSpace.hid(),
                  H5P_DEFAULT, data);
         //H5Sclose(fileSpace);
-    }
+        if (err < 0) {
+            throw DatasetWriteFailed();
+        }
+     }
 #ifdef H5_HAVE_PARALLEL
     template<typename Type>
     static void
@@ -1380,9 +1440,12 @@ class HDF5Traits {
         detail::wrapper<Type> t;
         detail::HDF5DataType memdatatype(t);
         //hid_t fileSpace = H5Dget_space(dataset.hid());
-        H5Dwrite(dataset.hid(), memdatatype.hid(), memorySpace.hid(), fileSpace.hid(),
+        auto err = H5Dwrite(dataset.hid(), memdatatype.hid(), memorySpace.hid(), fileSpace.hid(),
                  plist_id, data);
         //H5Sclose(fileSpace);
+        if (err < 0) {
+            throw DatasetWriteFailed();
+        }
     }
 #endif
     template<typename Type>

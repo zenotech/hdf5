@@ -167,28 +167,6 @@ void test_large_dataset_write() {
     assert(readData[3] == 1);
 }
 
-
-#include <boost/fusion/adapted/struct/adapt_struct.hpp>
-#include <boost/fusion/include/adapt_struct.hpp>
-#include <boost/fusion/adapted/std_pair.hpp>
-#include <boost/fusion/include/std_pair.hpp>
-#include <boost/fusion/adapted/std_tuple.hpp>
-#include <boost/fusion/include/std_tuple.hpp>
-
-struct test_point {
-	test_point() = default;
-	test_point(float x, float y, float z) :
-			x(x), y(y), z(z) {
-	}
-	float x, y, z;
-
-	bool operator ==(const test_point & t) const {
-		return x == t.x && y == t.y && z == t.z;
-	}
-};
-
-BOOST_FUSION_ADAPT_STRUCT(test_point, (float, x) (float, y) (float, z));
-
 TEST_F(Hdf5Test, WriteHomoPair) {
 	{
 		hdf::HDFFile<> file(file_name_, hdf::HDFFile<>::truncate);
@@ -206,7 +184,6 @@ TEST_F(Hdf5Test, WriteHomoPair) {
 
 }
 
-
 TEST_F(Hdf5Test, WriteHeteroPair) {
 	{
 		hdf::HDFFile<> file(file_name_, hdf::HDFFile<>::truncate);
@@ -223,6 +200,7 @@ TEST_F(Hdf5Test, WriteHeteroPair) {
 	ASSERT_EQ(std::make_pair(1, 3.5f), pairs[1]);
 
 }
+
 TEST_F(Hdf5Test, WriteHomoTuple) {
 	{
 		hdf::HDFFile<> file(file_name_, hdf::HDFFile<>::truncate);
@@ -238,7 +216,6 @@ TEST_F(Hdf5Test, WriteHomoTuple) {
 	ASSERT_EQ(std::make_tuple(1, 2, 3), tuples[0]);
 	ASSERT_EQ(std::make_tuple(4, 5, 6), tuples[1]);
 }
-
 
 TEST_F(Hdf5Test, WriteHeteroTuple) {
 	{
@@ -256,27 +233,3 @@ TEST_F(Hdf5Test, WriteHeteroTuple) {
 	ASSERT_EQ(std::make_tuple(1, 3.5f, 'b'), tuples[1]);
 }
 
-
-TEST_F(Hdf5Test, WriteStructure) {
-	{
-		hdf::HDFFile<> file(file_name_, hdf::HDFFile<>::truncate);
-
-		std::vector<test_point> points(4);
-		points[0] = test_point(0, 0, 1);
-		points[1] = test_point(1, 0, 0);
-		points[2] = test_point(1, 0, 1);
-		points[3] = test_point(0, 1, 0);
-		auto datasetpoints = file.writeDataset("/test", points);
-	}
-
-	hdf::HDFFile<> file(file_name_);
-	auto datasetpoints = file.openDataset(
-			"/test");
-	std::vector<test_point> read;
-	datasetpoints->readData(read);
-	ASSERT_EQ(4, read.size());
-	ASSERT_EQ(test_point(0, 0, 1), read[0]);
-	ASSERT_EQ(test_point(1, 0, 0), read[1]);
-	ASSERT_EQ(test_point(1, 0, 1), read[2]);
-	ASSERT_EQ(test_point(0, 1, 0), read[3]);
-}
