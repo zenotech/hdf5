@@ -622,7 +622,19 @@ class HDF5ParallelFileHolder : boost::noncopyable {
             throw FileOpenFailed();
         }
 
-        if (H5Fis_hdf5(path.c_str()) > 0) {
+        int rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        int8_t should_open = 0;
+        if (rank == 0) {
+            auto res = H5Fis_hdf5(path.c_str());
+            //Not a HDF5 file format
+            if (res == 0) throw FileOpenFailed();
+            should_open = (res > 0) ? 1 : 0;
+        }
+
+        MPI_Bcast(&should_open, 1, MPI_INT8_T, 0, MPI_COMM_WORLD);
+
+        if (should_open == 1) {
             file = H5Fopen(path.c_str(), H5F_ACC_RDWR, plist_id);
         } else {
             file = H5Fcreate(path.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
