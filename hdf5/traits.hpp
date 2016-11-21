@@ -1108,7 +1108,7 @@ class HDF5Traits {
     typedef detail::HDF5Attribute attribute_type;
     typedef detail::HDF5DataSpace slab_type;
 
-    static boost::shared_ptr<file_handle_type>
+    static std::unique_ptr<file_handle_type>
     open(const std::string & path, bool truncate, bool readonly)
     {
       if (readonly)
@@ -1126,7 +1126,7 @@ class HDF5Traits {
       return std::unique_ptr<file_handle_type>(new file_handle_type(path));
     }
 #ifdef H5_HAVE_PARALLEL
-    static boost::shared_ptr<parallel_file_handle_type>
+    static std::unique_ptr<parallel_file_handle_type>
     parallel_open(const std::string & path, bool truncate, bool readonly)
     {
       if(readonly)
