@@ -11,8 +11,9 @@ namespace hdf {
   public:
     typedef HDFGroup<HDFImpl> HDFGroup_t;
     enum Flags {
-      none = 0,
-      truncate = 1
+      none = 0x0,
+      truncate = 0x1,
+      readonly = 0x2
     };
 
 
@@ -21,7 +22,7 @@ namespace hdf {
      * Truncates the file if flags == truncate
      */
     HDFFile(const std::string & path, Flags flags = none) {
-      file = HDFImpl::open(path, flags==truncate);
+      file = HDFImpl::open(path, flags|truncate, flags|readonly);
       HDFGroup_t::initFileGroup(*file);
     };
 
@@ -38,8 +39,9 @@ namespace hdf {
   public:
     typedef HDFGroup<HDFImpl> HDFGroup_t;
     enum Flags {
-      none = 0,
-      truncate = 1
+      none = 0x0,
+      truncate = 0x1,
+      readonly = 0x2
     };
 
 
@@ -48,7 +50,7 @@ namespace hdf {
      * Truncates the file if flags == truncate
      */
     HDFParallelFile(const std::string & path, Flags flags = none) {
-      file = HDFImpl::parallel_open(path, flags==truncate);
+      file = HDFImpl::parallel_open(path, flags|truncate, flags|readonly);
       HDFGroup_t::initFileGroup(*file);
     };
 

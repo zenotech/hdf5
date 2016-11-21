@@ -91,6 +91,9 @@ namespace hdf
     class Create
     {
     };
+    class ReadOnly
+    {
+    };
 
     template<typename >
       class data_type_traits;
@@ -615,6 +618,23 @@ namespace hdf
         H5Pclose(plist_id);
         check_errors();
       }
+      HDF5FileHolder(const std::string & path, ReadOnly)
+      {
+        hid_t plist_id;
+        plist_id = H5Pcreate(H5P_FILE_ACCESS);
+
+        if (H5Fis_hdf5(path.c_str()) > 0)
+        {
+          file = H5Fopen(path.c_str(), H5F_ACC_RDONLY, plist_id);
+        }
+        else
+        {
+          //file = H5Fcreate(path.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
+
+        }
+        H5Pclose(plist_id);
+        check_errors();
+      }
 
       HDF5FileHolder(const std::string & path, Create)
       {
@@ -664,6 +684,27 @@ namespace hdf
         else
         {
           file = H5Fcreate(path.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
+        }
+        H5Pclose(plist_id);
+        check_errors();
+      }
+      HDF5ParallelFileHolder(const std::string & path, ReadOnly)
+      {
+        hid_t plist_id;
+        plist_id = H5Pcreate(H5P_FILE_ACCESS);
+
+        //https://wickie.hlrs.de/platforms/index.php/MPI-IO
+
+        //H5Pset_fapl_mpiposix(plist_id, MPI_COMM_WORLD, false);
+        H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
+
+        if (H5Fis_hdf5(path.c_str()) > 0)
+        {
+          file = H5Fopen(path.c_str(), H5F_ACC_RDONLY, plist_id);
+        }
+        else
+        {
+          //file = H5Fcreate(path.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
         }
         H5Pclose(plist_id);
         check_errors();
@@ -1228,8 +1269,14 @@ namespace hdf
     typedef detail::HDF5DataSpace slab_type;
 
     static boost::shared_ptr<file_handle_type>
-    open(const std::string & path, bool truncate)
+    open(const std::string & path, bool truncate, bool readonly)
     {
+      if (readonly)
+      {
+        detail::ReadOnly ro;
+        return boost::shared_ptr<file_handle_type>(
+            new file_handle_type(path, ro));
+      }
       if (truncate)
       {
         detail::Create c;
@@ -1240,8 +1287,14 @@ namespace hdf
     }
 #ifdef H5_HAVE_PARALLEL
     static boost::shared_ptr<parallel_file_handle_type>
-    parallel_open(const std::string & path, bool truncate)
+    parallel_open(const std::string & path, bool truncate, bool readonly)
     {
+      if(readonly)
+      {
+        detail::ReadOnly ro;
+        return boost::shared_ptr<parallel_file_handle_type>(
+            new parallel_file_handle_type(path, ro));
+      }
       if (truncate)
       {
         detail::Create c;
