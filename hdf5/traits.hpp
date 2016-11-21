@@ -88,17 +88,9 @@ template<class T>
 class wrapper {
 };
 
-<<<<<<< HEAD
-    class Create
-    {
-    };
-    class ReadOnly
-    {
-    };
-=======
-class Create {
-};
->>>>>>> 6f82d9707143ccfdc3168952b4b6116716651ed7
+class Create {};
+class ReadOnly {};
+
 
 template<typename >
 class data_type_traits;
