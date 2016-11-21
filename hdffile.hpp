@@ -1,13 +1,13 @@
 #ifndef hdffileH
 #define hdffileH
 
-#include <hdf5/hdfgroup.hpp>
-#include <hdf5/hdf5/traits.hpp>
+#include "hdfgroup.hpp"
+#include "hdf5/traits.hpp"
 #include <string>
 
 namespace hdf {
-  template<class HDFImpl=HDF5Traits>
-  class HDFFile : public HDFGroup<HDFImpl> {
+template<class HDFImpl=HDF5Traits>
+class HDFFile : public HDFGroup<HDFImpl> {
   public:
     typedef HDFGroup<HDFImpl> HDFGroup_t;
     enum Flags {
@@ -27,15 +27,16 @@ namespace hdf {
     };
 
     ~HDFFile() {
-      HDFGroup<HDFImpl>::group.reset();
+        HDFGroup<HDFImpl>::group.reset();
     }
 
   private:
-    boost::shared_ptr<typename HDFImpl::file_handle_type> file;
-  };
+    std::shared_ptr<typename HDFImpl::file_handle_type> file;
+};
+
 #ifdef H5_HAVE_PARALLEL
-  template<class HDFImpl=HDF5Traits>
-  class HDFParallelFile : public HDFGroup<HDFImpl> {
+template<class HDFImpl=HDF5Traits>
+class HDFParallelFile : public HDFGroup<HDFImpl> {
   public:
     typedef HDFGroup<HDFImpl> HDFGroup_t;
     enum Flags {
@@ -55,12 +56,12 @@ namespace hdf {
     };
 
     ~HDFParallelFile() {
-      HDFGroup<HDFImpl>::group.reset();
+        HDFGroup<HDFImpl>::group.reset();
     }
 
   private:
-    boost::shared_ptr<typename HDFImpl::parallel_file_handle_type> file;
-  };
+    std::shared_ptr<typename HDFImpl::parallel_file_handle_type> file;
+};
 #endif
 }
 
