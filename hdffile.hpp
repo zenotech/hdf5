@@ -16,7 +16,6 @@ class HDFFile : public HDFGroup<HDFImpl> {
       readonly = 0x2
     };
 
-
     /**
      * Open the hdf5 file at the given location
      * Truncates the file if flags == truncate
@@ -34,13 +33,15 @@ class HDFFile : public HDFGroup<HDFImpl> {
         file->flush();
     }
 
-  private:
+  protected:
+    HDFFile() = default;
+
     std::shared_ptr<typename HDFImpl::file_handle_type> file;
 };
 
 #ifdef H5_HAVE_PARALLEL
 template<class HDFImpl=HDF5Traits>
-class HDFParallelFile : public HDFGroup<HDFImpl> {
+class HDFParallelFile : public HDFFile<HDFImpl> {
   public:
     typedef HDFGroup<HDFImpl> HDFGroup_t;
     enum Flags {
@@ -49,26 +50,14 @@ class HDFParallelFile : public HDFGroup<HDFImpl> {
       readonly = 0x2
     };
 
-
     /**
      * Open the hdf5 file at the given location
      * Truncates the file if flags == truncate
      */
     HDFParallelFile(const std::string & path, Flags flags = none, MPI_Comm mpi_comm=MPI_COMM_WORLD) {
-      file = HDFImpl::parallel_open(path, flags&truncate, flags&readonly, mpi_comm);
-      HDFGroup_t::initFileGroup(*file);
+      this->file = HDFImpl::parallel_open(path, flags&truncate, flags&readonly, mpi_comm);
+      HDFGroup_t::initFileGroup(*this->file);
     };
-
-    ~HDFParallelFile() {
-        HDFGroup<HDFImpl>::group.reset();
-    }
-
-    void flush() {
-        file->flush();
-    }
-
-  private:
-    std::shared_ptr<typename HDFImpl::file_handle_type> file;
 };
 #endif
 }
