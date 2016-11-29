@@ -60,7 +60,7 @@ class HDFParallelFile : public HDFGroup<HDFImpl> {
     }
 
   private:
-    std::shared_ptr<typename HDFImpl::parallel_file_handle_type> file;
+    std::shared_ptr<typename HDFImpl::file_handle_type> file;
 };
 #endif
 }

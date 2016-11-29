@@ -116,7 +116,6 @@ class wrapper {
 class Create {};
 class ReadOnly {};
 
-
 template<typename >
 class data_type_traits;
 
@@ -595,24 +594,8 @@ class HDF5FileHolder : boost::noncopyable {
  
         check_errors();
     }
-
-    ~HDF5FileHolder() {
-        H5Fclose(file);
-    }
-
-    hid_t
-    hid() const {
-        return file;
-    }
-  private:
-    hid_t file;
-};
-
-
 #ifdef H5_HAVE_PARALLEL
-class HDF5ParallelFileHolder : boost::noncopyable {
-  public:
-    HDF5ParallelFileHolder(const std::string & path, MPI_Comm comm) {
+    HDF5FileHolder(const std::string & path, MPI_Comm comm) {
         hid_t plist_id;
         plist_id = H5Pcreate(H5P_FILE_ACCESS);
 
@@ -644,7 +627,7 @@ class HDF5ParallelFileHolder : boost::noncopyable {
           throw FileOpenFailed();
         }
       }
-      HDF5ParallelFileHolder(const std::string & path, MPI_Comm comm, ReadOnly) {
+      HDF5FileHolder(const std::string & path, MPI_Comm comm, ReadOnly) {
         hid_t plist_id;
         plist_id = H5Pcreate(H5P_FILE_ACCESS);
 
@@ -669,7 +652,7 @@ class HDF5ParallelFileHolder : boost::noncopyable {
         }
       }
 
-    HDF5ParallelFileHolder(const std::string & path, MPI_Comm comm, Create) {
+    HDF5FileHolder(const std::string & path, MPI_Comm comm, Create) {
         hid_t plist_id;
         plist_id = H5Pcreate(H5P_FILE_ACCESS);
 
@@ -686,8 +669,9 @@ class HDF5ParallelFileHolder : boost::noncopyable {
           throw FileOpenFailed();
         }
     }
+#endif
 
-    ~HDF5ParallelFileHolder() {
+    ~HDF5FileHolder() {
         H5Fclose(file);
     }
 
@@ -698,8 +682,6 @@ class HDF5ParallelFileHolder : boost::noncopyable {
   private:
     hid_t file;
 };
-#endif
-
 
 class HDF5DataSpace {
   public:
@@ -1164,9 +1146,6 @@ class HDF5Attribute : boost::noncopyable {
 class HDF5Traits {
   public:
     typedef detail::HDF5FileHolder file_handle_type;
-#ifdef H5_HAVE_PARALLEL
-    typedef detail::HDF5ParallelFileHolder parallel_file_handle_type;
-#endif
     typedef detail::HDF5Group group_type;
     typedef detail::HDF5DataType datatype_type;
     typedef detail::HDF5DataSet dataset_type;
@@ -1191,22 +1170,22 @@ class HDF5Traits {
       return std::unique_ptr<file_handle_type>(new file_handle_type(path));
     }
 #ifdef H5_HAVE_PARALLEL
-    static std::unique_ptr<parallel_file_handle_type>
+    static std::unique_ptr<file_handle_type>
     parallel_open(const std::string & path, bool truncate, bool readonly, MPI_Comm comm)
     {
       if(readonly)
       {
         detail::ReadOnly ro;
-        return std::unique_ptr<parallel_file_handle_type>(
-            new parallel_file_handle_type(path, comm, ro));
+        return std::unique_ptr<file_handle_type>(
+            new file_handle_type(path, comm, ro));
       }
       if (truncate)
       {
         detail::Create c;
-        return std::unique_ptr<parallel_file_handle_type>(
-            new parallel_file_handle_type(path, comm, c));
+        return std::unique_ptr<file_handle_type>(
+            new file_handle_type(path, comm, c));
       }
-      return std::unique_ptr<parallel_file_handle_type>(new parallel_file_handle_type(path, comm));
+      return std::unique_ptr<file_handle_type>(new file_handle_type(path, comm));
     }
 #endif
     template<typename FileHandle>
