@@ -30,6 +30,10 @@ class HDFFile : public HDFGroup<HDFImpl> {
         HDFGroup<HDFImpl>::group.reset();
     }
 
+    void flush() {
+        file->flush();
+    }
+
   private:
     std::shared_ptr<typename HDFImpl::file_handle_type> file;
 };
@@ -57,6 +61,10 @@ class HDFParallelFile : public HDFGroup<HDFImpl> {
 
     ~HDFParallelFile() {
         HDFGroup<HDFImpl>::group.reset();
+    }
+
+    void flush() {
+        file->flush();
     }
 
   private:

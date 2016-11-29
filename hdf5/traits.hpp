@@ -675,6 +675,10 @@ class HDF5FileHolder : boost::noncopyable {
         H5Fclose(file);
     }
 
+    void flush() {
+        H5Fflush(file, H5F_SCOPE_GLOBAL);
+    }
+
     hid_t
     hid() const {
         return file;
