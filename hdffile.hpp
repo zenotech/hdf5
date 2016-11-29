@@ -50,8 +50,8 @@ class HDFParallelFile : public HDFGroup<HDFImpl> {
      * Open the hdf5 file at the given location
      * Truncates the file if flags == truncate
      */
-    HDFParallelFile(const std::string & path, Flags flags = none) {
-      file = HDFImpl::parallel_open(path, flags&truncate, flags&readonly);
+    HDFParallelFile(const std::string & path, Flags flags = none, MPI_Comm mpi_comm=MPI_COMM_WORLD) {
+      file = HDFImpl::parallel_open(path, flags&truncate, flags&readonly, mpi_comm);
       HDFGroup_t::initFileGroup(*file);
     };
 

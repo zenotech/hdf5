@@ -612,18 +612,18 @@ class HDF5FileHolder : boost::noncopyable {
 #ifdef H5_HAVE_PARALLEL
 class HDF5ParallelFileHolder : boost::noncopyable {
   public:
-    HDF5ParallelFileHolder(const std::string & path) {
+    HDF5ParallelFileHolder(const std::string & path, MPI_Comm comm) {
         hid_t plist_id;
         plist_id = H5Pcreate(H5P_FILE_ACCESS);
 
         //https://wickie.hlrs.de/platforms/index.php/MPI-IO
 
-        if(H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL) < 0) {
+        if(H5Pset_fapl_mpio(plist_id, comm, MPI_INFO_NULL) < 0) {
             throw FileOpenFailed();
         }
 
         int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_rank(comm, &rank);
         int8_t should_open = 0;
         if (rank == 0) {
             auto res = H5Fis_hdf5(path.c_str());
@@ -632,7 +632,7 @@ class HDF5ParallelFileHolder : boost::noncopyable {
             should_open = (res > 0) ? 1 : 0;
         }
 
-        MPI_Bcast(&should_open, 1, MPI_INT8_T, 0, MPI_COMM_WORLD);
+        MPI_Bcast(&should_open, 1, MPI_INT8_T, 0, comm);
 
         if (should_open == 1) {
             file = H5Fopen(path.c_str(), H5F_ACC_RDWR, plist_id);
@@ -644,13 +644,13 @@ class HDF5ParallelFileHolder : boost::noncopyable {
           throw FileOpenFailed();
         }
       }
-      HDF5ParallelFileHolder(const std::string & path, ReadOnly) {
+      HDF5ParallelFileHolder(const std::string & path, MPI_Comm comm, ReadOnly) {
         hid_t plist_id;
         plist_id = H5Pcreate(H5P_FILE_ACCESS);
 
         //https://wickie.hlrs.de/platforms/index.php/MPI-IO
 
-        if(H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL) < 0) {
+        if(H5Pset_fapl_mpio(plist_id, comm, MPI_INFO_NULL) < 0) {
             throw FileOpenFailed();
         }
 
@@ -669,13 +669,13 @@ class HDF5ParallelFileHolder : boost::noncopyable {
         }
       }
 
-    HDF5ParallelFileHolder(const std::string & path, Create) {
+    HDF5ParallelFileHolder(const std::string & path, MPI_Comm comm, Create) {
         hid_t plist_id;
         plist_id = H5Pcreate(H5P_FILE_ACCESS);
 
         //https://wickie.hlrs.de/platforms/index.php/MPI-IO
 
-        if(H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL) < 0) {
+        if(H5Pset_fapl_mpio(plist_id, comm, MPI_INFO_NULL) < 0) {
             throw FileOpenFailed();
         }
 
@@ -1192,21 +1192,21 @@ class HDF5Traits {
     }
 #ifdef H5_HAVE_PARALLEL
     static std::unique_ptr<parallel_file_handle_type>
-    parallel_open(const std::string & path, bool truncate, bool readonly)
+    parallel_open(const std::string & path, bool truncate, bool readonly, MPI_Comm comm)
     {
       if(readonly)
       {
         detail::ReadOnly ro;
         return std::unique_ptr<parallel_file_handle_type>(
-            new parallel_file_handle_type(path, ro));
+            new parallel_file_handle_type(path, comm, ro));
       }
       if (truncate)
       {
         detail::Create c;
         return std::unique_ptr<parallel_file_handle_type>(
-            new parallel_file_handle_type(path, c));
+            new parallel_file_handle_type(path, comm, c));
       }
-      return std::unique_ptr<parallel_file_handle_type>(new parallel_file_handle_type(path));
+      return std::unique_ptr<parallel_file_handle_type>(new parallel_file_handle_type(path, comm));
     }
 #endif
     template<typename FileHandle>
