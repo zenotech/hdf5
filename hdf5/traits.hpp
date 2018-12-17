@@ -1037,8 +1037,7 @@ class HDF5Group : boost::noncopyable {
     }
 
     template<class Parent>
-    HDF5Group(Parent & p, const std::string & path, bool create)
-    throw (GroupNotFound) {
+    HDF5Group(Parent & p, const std::string & path, bool create) {
         if (path == "/" || h5lexists(p.hid(), path.c_str())) {
 
 #if H5_VERS_MINOR >= 8
