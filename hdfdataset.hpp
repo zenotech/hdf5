@@ -21,7 +21,7 @@ public:
 
     template <typename Type>
     void writeData(const Type& data) {
-        HDFImpl::write_dataset(*dataset, &data);
+        HDFImpl::write_dataset(*dataset, data);
     }
 
 #ifdef H5_HAVE_PARALLEL
