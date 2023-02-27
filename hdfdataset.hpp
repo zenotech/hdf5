@@ -27,24 +27,24 @@ public:
 #ifdef H5_HAVE_PARALLEL
     template <typename Type>
     void writeParallelData(const Type& data) {
-        HDFImpl::write_parallel_dataset(*dataset, &data);
+        HDFImpl::write_parallel_dataset(*dataset, data);
     }
 #endif
 
     template <int order, typename Type>
     void writeData(const Type& data, const Slab<order, HDFImpl>& mem) {
-        HDFImpl::write_dataset(*dataset, &data, mem);
+        HDFImpl::write_dataset(*dataset, data, mem);
     }
 
     template <int order, typename Type>
     void writeData(const Type& data, const Slab<order, HDFImpl>& mem, const Slab<order, HDFImpl>& filespace) {
-        HDFImpl::write_dataset(*dataset, &data, mem, filespace);
+        HDFImpl::write_dataset(*dataset, data, mem, filespace);
     }
 
 #ifdef H5_HAVE_PARALLEL
     template <int order, typename Type>
-    void writeParallelData(const Type& data, const Slab<order, HDFImpl>& mem) {
-        HDFImpl::write_parallel_dataset(*dataset, &data, mem);
+    void writeParallelData(const Type* data, const Slab<order, HDFImpl>& mem) {
+        HDFImpl::write_parallel_dataset(*dataset, data, mem);
     }
 
     template <int order, typename Type>
@@ -53,9 +53,9 @@ public:
     }
 
     template <int order, typename Type>
-    void writeParallelData(const Type& data, const Slab<order, HDFImpl>& memSpace,
+    void writeParallelData(const Type* data, const Slab<order, HDFImpl>& memSpace,
                            const Slab<order, HDFImpl>& fileSpace) {
-        HDFImpl::write_parallel_dataset(*dataset, &data, memSpace, fileSpace);
+        HDFImpl::write_parallel_dataset(*dataset, data, memSpace, fileSpace);
     }
 
     template <int order, typename Type>
