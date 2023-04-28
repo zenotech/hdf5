@@ -113,6 +113,9 @@ public:
         HDFImpl::read_dataset(*dataset, data);
     }
 
+    hid_t hid() const {
+        return dataset->hid();
+    }
 private:
     std::shared_ptr<typename HDFImpl::dataset_type> dataset;
 };
