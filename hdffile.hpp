@@ -25,6 +25,10 @@ public:
 
     void flush() { file->flush(); }
 
+    hid_t hid() const {
+        return file->hid();
+    }
+
 protected:
     HDFFile() = default;
 
