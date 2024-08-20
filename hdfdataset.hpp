@@ -3,6 +3,7 @@
 
 #include "slab.hpp"
 #include "hdf5/traits.hpp"
+#include "hdfattribute.hpp"
 #include <stdexcept>
 
 namespace hdf {
@@ -10,6 +11,22 @@ template <class HDFImpl = HDF5Traits>
 class HDFDataSet {
 public:
     HDFDataSet(std::shared_ptr<typename HDFImpl::dataset_type> dataset) : dataset(dataset) {}
+
+    /**
+     * Create an attribute attached to this dataset
+     */
+    template <typename Type>
+    std::unique_ptr<HDFAttribute<HDFImpl> > createAttribute(const std::string& name, std::vector<hsize_t> dims) {
+        return std::unique_ptr<HDFAttribute<HDFImpl> >(
+            new HDFAttribute<HDFImpl>(HDFImpl::template createAttribute<Type>(*dataset, name, dims, dims)));
+    }
+
+    /**
+     * Open an existing attribute of this dataset
+     */
+    std::unique_ptr<HDFAttribute<HDFImpl> > openAttribute(const std::string& name) {
+        return std::unique_ptr<HDFAttribute<HDFImpl> >(new HDFAttribute<HDFImpl>(HDFImpl::openAttribute(*dataset, name)));
+    }
 
     template <typename Type>
     HDFDataSet<HDFImpl>* selectSubset(const std::vector<Type>& mapping) {
