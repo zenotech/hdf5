@@ -29,6 +29,16 @@ public:
     }
 
     template <typename Type>
+    void writeAttribute(const std::string& name, const Type& data) {
+        openAttribute(name)->writeAttribute<Type>(data);
+    }
+
+    template <typename Type>
+    void readAttribute(const std::string& name, Type& data) {
+        openAttribute(name)->readAttribute<Type>(data);
+    }
+
+    template <typename Type>
     HDFDataSet<HDFImpl>* selectSubset(const std::vector<Type>& mapping) {
         if(mapping.empty())
             throw std::runtime_error("No mapping available");
