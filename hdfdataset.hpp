@@ -30,12 +30,19 @@ public:
 
     template <typename Type>
     void writeAttribute(const std::string& name, const Type& data) {
-        openAttribute(name)->writeData<Type>(data);
+        std::vector<hsize_t> dims(1, 1);
+        std::unique_ptr<HDFAttribute<HDFImpl> > attr;
+        try {
+            attr = createAttribute<Type>(name, dims);
+        } catch(AttributeExists&) {
+            attr = openAttribute(name);
+        }
+        attr->writeData<typename Type>(data);
     }
 
     template <typename Type>
     void readAttribute(const std::string& name, Type& data) {
-        openAttribute(name)->readData<Type>(data);
+        openAttribute(name)->readData<typename Type>(data);
     }
 
     template <typename Type>
