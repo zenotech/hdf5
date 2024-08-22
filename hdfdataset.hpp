@@ -37,12 +37,12 @@ public:
         } catch(AttributeExists&) {
             attr = openAttribute(name);
         }
-        attr->writeData<typename Type>(data);
+        attr->writeData(data);
     }
 
     template <typename Type>
     void readAttribute(const std::string& name, Type& data) {
-        openAttribute(name)->readData<typename Type>(data);
+        openAttribute(name)->readData(data);
     }
 
     template <typename Type>
