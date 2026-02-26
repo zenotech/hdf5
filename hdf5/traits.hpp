@@ -79,7 +79,7 @@ inline bool h5lexists(hid_t loc_id, const std::string& name) {
 }
 
 inline void check_errors() {
-#if H5_VERS_MINOR >= 8
+#if H5_VERS_MAJOR > 1 || H5_VERS_MINOR >= 8
     H5Eprint(H5E_DEFAULT, NULL);
 #else
     H5Eprint(NULL);
@@ -642,7 +642,7 @@ public:
 
 private:
     void checkExtentsMatch(const HDF5DataSpace& other) const {
-#if H5_VERS_MINOR >= 8
+#if H5_VERS_MAJOR > 1 || H5_VERS_MINOR >= 8
         htri_t r = H5Sextent_equal(hid(), other.hid());
         if(r == 0)
             throw;  // Extents don't match
@@ -712,7 +712,7 @@ public:
             throw DatasetNotFound();
         }
 
-#if H5_VERS_MINOR >= 8
+#if H5_VERS_MAJOR > 1 || H5_VERS_MINOR >= 8
         dataset = H5Dopen(p.hid(), name.c_str(), H5P_DEFAULT);
 #else
         dataset = H5Dopen(p.hid(), name.c_str());
@@ -744,7 +744,7 @@ public:
             }
         }
 
-#if H5_VERS_MINOR >= 8
+#if H5_VERS_MAJOR > 1 || H5_VERS_MINOR >= 8
         dataset = H5Dcreate(p.hid(), name.c_str(), datatype.hid(), dataspace.hid(), H5P_DEFAULT, cparms, H5P_DEFAULT);
 #else
         dataset = H5Dcreate(p.hid(), name.c_str(), datatype.hid(), dataspace.hid(), cparms);
@@ -796,7 +796,7 @@ class HDF5Group : boost::noncopyable {
 public:
     template <class Parent>
     HDF5Group(Parent& p, const std::string& path, Create) {
-#if H5_VERS_MINOR >= 8
+#if H5_VERS_MAJOR > 1 || H5_VERS_MINOR >= 8
         group = H5Gcreate(p.hid(), path.c_str(), 0, H5P_DEFAULT, H5P_DEFAULT);
 #else
         group = H5Gcreate(p.hid(), path.c_str(), 0);
@@ -809,7 +809,7 @@ public:
     template <class Parent>
     HDF5Group(Parent& p, const std::string& path, bool create) {
         if(path == "/" || h5lexists(p.hid(), path.c_str())) {
-#if H5_VERS_MINOR >= 8
+#if H5_VERS_MAJOR > 1 || H5_VERS_MINOR >= 8
             group = H5Gopen(p.hid(), path.c_str(), H5P_DEFAULT);
 #else
             group = H5Gopen(p.hid(), path.c_str());
@@ -819,7 +819,7 @@ public:
             }
         } else if(create) {
             // Group didn't exist and we've asked to create the group
-#if H5_VERS_MINOR >= 8
+#if H5_VERS_MAJOR > 1 || H5_VERS_MINOR >= 8
             group = H5Gcreate(p.hid(), path.c_str(), 0, H5P_DEFAULT, H5P_DEFAULT);
 #else
             group = H5Gcreate(p.hid(), path.c_str(), 0);
@@ -837,7 +837,7 @@ public:
     template <class Parent>
     HDF5Group(Parent& p, const std::string& externalFile, const std::string& externalPath, const std::string& path,
               Create) {
-#if H5_VERS_MINOR >= 8
+#if H5_VERS_MAJOR > 1 || H5_VERS_MINOR >= 8
         group = H5Lcreate_external(externalFile.c_str(), externalPath.c_str(), p.hid(), path.c_str(), H5P_DEFAULT,
                                    H5P_DEFAULT);
 #else
@@ -885,7 +885,7 @@ public:
         HDF5DataSpace space(dims, maxdims);
         HDF5DataType type(t);
 
-#if H5_VERS_MINOR >= 8
+#if H5_VERS_MAJOR > 1 || H5_VERS_MINOR >= 8
         attribute = H5Acreate(p.hid(), name.c_str(), type.hid(), space.hid(), H5P_DEFAULT, H5P_DEFAULT);
 #else
         attribute = H5Acreate(p.hid(), name.c_str(), type.hid(), space.hid(), H5P_DEFAULT);
