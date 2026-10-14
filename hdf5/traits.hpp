@@ -295,6 +295,25 @@ public:
 };
 
 template <>
+class data_type_traits<unsigned long long> {
+public:
+    typedef boost::true_type is_homogeneous;
+    static hid_t homogeneous_type() { return H5Tcopy(value()); }
+    static hid_t value() { return H5T_NATIVE_ULLONG; }
+    static hsize_t dimsize() { return 1; }
+    static hsize_t num_type() { return 1; }
+    static void insert_data_type(hid_t t, size_t& offset) {
+        static int i = 0;
+        std::string name("ullong");
+        std::stringstream ss;
+        ss << i++;
+        name += ss.str();
+        H5Tinsert(t, name.c_str(), offset, value());
+        offset += HDF5_datatype_size<unsigned long long>();
+    }
+};
+
+template <>
 class data_type_traits<boost::uint16_t> {
 public:
     typedef boost::true_type is_homogeneous;
